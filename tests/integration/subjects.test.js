@@ -1,55 +1,55 @@
 const request = require('supertest');
-const {Genre} = require('../../models/genre');
+const {Subject} = require('../../models/subject');
 const {User} = require('../../models/user');
 const mongoose = require('mongoose');
 
 let server;
 
-describe('/api/genres', () => {
+describe('/api/subjects', () => {
   beforeEach(() => { server = require('../../index'); })
   afterEach(async () => { 
     await server.close(); 
-    await Genre.remove({});
+    await Subject.remove({});
   });
 
   describe('GET /', () => {
-    it('should return all genres', async () => {
-      const genres = [
-        { name: 'genre1' },
-        { name: 'genre2' },
+    it('should return all subjects', async () => {
+      const subjects = [
+        { name: 'subject1' },
+        { name: 'subject2' },
       ];
       
-      await Genre.collection.insertMany(genres);
+      await Subject.collection.insertMany(subjects);
 
-      const res = await request(server).get('/api/genres');
+      const res = await request(server).get('/api/subjects');
       
       expect(res.status).toBe(200);
       expect(res.body.length).toBe(2);
-      expect(res.body.some(g => g.name === 'genre1')).toBeTruthy();
-      expect(res.body.some(g => g.name === 'genre2')).toBeTruthy();
+      expect(res.body.some(g => g.name === 'subject1')).toBeTruthy();
+      expect(res.body.some(g => g.name === 'subject2')).toBeTruthy();
     });
   });
 
   describe('GET /:id', () => {
-    it('should return a genre if valid id is passed', async () => {
-      const genre = new Genre({ name: 'genre1' });
-      await genre.save();
+    it('should return a subject if valid id is passed', async () => {
+      const subject = new Subject({ name: 'subject1' });
+      await subject.save();
 
-      const res = await request(server).get('/api/genres/' + genre._id);
+      const res = await request(server).get('/api/subjects/' + subject._id);
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('name', genre.name);     
+      expect(res.body).toHaveProperty('name', subject.name);     
     });
 
     it('should return 404 if invalid id is passed', async () => {
-      const res = await request(server).get('/api/genres/1');
+      const res = await request(server).get('/api/subjects/1');
 
       expect(res.status).toBe(404);
     });
 
-    it('should return 404 if no genre with the given id exists', async () => {
+    it('should return 404 if no subject with the given id exists', async () => {
       const id = mongoose.Types.ObjectId();
-      const res = await request(server).get('/api/genres/' + id);
+      const res = await request(server).get('/api/subjects/' + id);
 
       expect(res.status).toBe(404);
     });
@@ -65,14 +65,14 @@ describe('/api/genres', () => {
 
     const exec = async () => {
       return await request(server)
-        .post('/api/genres')
+        .post('/api/subjects')
         .set('x-auth-token', token)
         .send({ name });
     }
 
     beforeEach(() => {
       token = new User().generateAuthToken();      
-      name = 'genre1'; 
+      name = 'subject1'; 
     })
 
     it('should return 401 if client is not logged in', async () => {
@@ -83,7 +83,7 @@ describe('/api/genres', () => {
       expect(res.status).toBe(401);
     });
 
-    it('should return 400 if genre is less than 5 characters', async () => {
+    it('should return 400 if subject is less than 5 characters', async () => {
       name = '1234'; 
       
       const res = await exec();
@@ -91,7 +91,7 @@ describe('/api/genres', () => {
       expect(res.status).toBe(400);
     });
 
-    it('should return 400 if genre is more than 50 characters', async () => {
+    it('should return 400 if subject is more than 50 characters', async () => {
       name = new Array(52).join('a');
 
       const res = await exec();
@@ -99,43 +99,43 @@ describe('/api/genres', () => {
       expect(res.status).toBe(400);
     });
 
-    it('should save the genre if it is valid', async () => {
+    it('should save the subject if it is valid', async () => {
       await exec();
 
-      const genre = await Genre.find({ name: 'genre1' });
+      const subject = await Subject.find({ name: 'subject1' });
 
-      expect(genre).not.toBeNull();
+      expect(subject).not.toBeNull();
     });
 
-    it('should return the genre if it is valid', async () => {
+    it('should return the subject if it is valid', async () => {
       const res = await exec();
 
       expect(res.body).toHaveProperty('_id');
-      expect(res.body).toHaveProperty('name', 'genre1');
+      expect(res.body).toHaveProperty('name', 'subject1');
     });
   });
 
   describe('PUT /:id', () => {
     let token; 
     let newName; 
-    let genre; 
+    let subject; 
     let id; 
 
     const exec = async () => {
       return await request(server)
-        .put('/api/genres/' + id)
+        .put('/api/subjects/' + id)
         .set('x-auth-token', token)
         .send({ name: newName });
     }
 
     beforeEach(async () => {
-      // Before each test we need to create a genre and 
+      // Before each test we need to create a subject and 
       // put it in the database.      
-      genre = new Genre({ name: 'genre1' });
-      await genre.save();
+      subject = new Subject({ name: 'subject1' });
+      await subject.save();
       
       token = new User().generateAuthToken();     
-      id = genre._id; 
+      id = subject._id; 
       newName = 'updatedName'; 
     })
 
@@ -147,7 +147,7 @@ describe('/api/genres', () => {
       expect(res.status).toBe(401);
     });
 
-    it('should return 400 if genre is less than 5 characters', async () => {
+    it('should return 400 if subject is less than 5 characters', async () => {
       newName = '1234'; 
       
       const res = await exec();
@@ -155,7 +155,7 @@ describe('/api/genres', () => {
       expect(res.status).toBe(400);
     });
 
-    it('should return 400 if genre is more than 50 characters', async () => {
+    it('should return 400 if subject is more than 50 characters', async () => {
       newName = new Array(52).join('a');
 
       const res = await exec();
@@ -171,7 +171,7 @@ describe('/api/genres', () => {
       expect(res.status).toBe(404);
     });
 
-    it('should return 404 if genre with the given id was not found', async () => {
+    it('should return 404 if subject with the given id was not found', async () => {
       id = mongoose.Types.ObjectId();
 
       const res = await exec();
@@ -179,15 +179,15 @@ describe('/api/genres', () => {
       expect(res.status).toBe(404);
     });
 
-    it('should update the genre if input is valid', async () => {
+    it('should update the subject if input is valid', async () => {
       await exec();
 
-      const updatedGenre = await Genre.findById(genre._id);
+      const updatedSubject = await Subject.findById(subject._id);
 
-      expect(updatedGenre.name).toBe(newName);
+      expect(updatedSubject.name).toBe(newName);
     });
 
-    it('should return the updated genre if it is valid', async () => {
+    it('should return the updated subject if it is valid', async () => {
       const res = await exec();
 
       expect(res.body).toHaveProperty('_id');
@@ -197,23 +197,23 @@ describe('/api/genres', () => {
 
   describe('DELETE /:id', () => {
     let token; 
-    let genre; 
+    let subject; 
     let id; 
 
     const exec = async () => {
       return await request(server)
-        .delete('/api/genres/' + id)
+        .delete('/api/subjects/' + id)
         .set('x-auth-token', token)
         .send();
     }
 
     beforeEach(async () => {
-      // Before each test we need to create a genre and 
+      // Before each test we need to create a subject and 
       // put it in the database.      
-      genre = new Genre({ name: 'genre1' });
-      await genre.save();
+      subject = new Subject({ name: 'subject1' });
+      await subject.save();
       
-      id = genre._id; 
+      id = subject._id; 
       token = new User({ isAdmin: true }).generateAuthToken();     
     })
 
@@ -241,7 +241,7 @@ describe('/api/genres', () => {
       expect(res.status).toBe(404);
     });
 
-    it('should return 404 if no genre with the given id was found', async () => {
+    it('should return 404 if no subject with the given id was found', async () => {
       id = mongoose.Types.ObjectId();
 
       const res = await exec();
@@ -249,19 +249,19 @@ describe('/api/genres', () => {
       expect(res.status).toBe(404);
     });
 
-    it('should delete the genre if input is valid', async () => {
+    it('should delete the subject if input is valid', async () => {
       await exec();
 
-      const genreInDb = await Genre.findById(id);
+      const subjectInDb = await Subject.findById(id);
 
-      expect(genreInDb).toBeNull();
+      expect(subjectInDb).toBeNull();
     });
 
-    it('should return the removed genre', async () => {
+    it('should return the removed subject', async () => {
       const res = await exec();
 
-      expect(res.body).toHaveProperty('_id', genre._id.toHexString());
-      expect(res.body).toHaveProperty('name', genre.name);
+      expect(res.body).toHaveProperty('_id', subject._id.toHexString());
+      expect(res.body).toHaveProperty('name', subject.name);
     });
   });  
 });
